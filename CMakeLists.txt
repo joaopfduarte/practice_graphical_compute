@@ -8,9 +8,9 @@ find_package(OpenGL REQUIRED)
 include_directories("C:/msys64/mingw64/include")
 link_directories("C:/msys64/mingw64/lib")
 
-add_executable(graphical_practice graph.cpp
-        graph.cpp
-        header/graph.h)
+add_executable(graphical_practice house.cpp
+        house.cpp
+        header/house.h)
 
 target_link_libraries(graphical_practice PRIVATE
         OpenGL::GL
