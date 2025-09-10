@@ -22,7 +22,9 @@ using namespace std;
 // Função de callback chamada sempre que a janela é redimensionada.
 int x;
 int y;
-bool coordinateColor = false;
+std::vector<int> pointsX;
+std::vector<int> pointsY;
+bool coordinateColor = true;
 
 static void resize(int width, int height){
     glViewport(0, 0, width, height);
@@ -38,11 +40,14 @@ void desenharEixos(){
      glEnd();
 }
 
-void imprimirPonto(int x, int y) {
-    glBegin(GL_POINTS);
-    glColor3f(1,0,0);
-    glVertex2i(x, y);
-    glEnd();
+void imprimirPonto(std::vector<int> pointsX, std::vector<int> pointsY) {
+    for (int i = 0; i < pointsX.size(); i++) {
+        glBegin(GL_POINTS);
+        glColor3f(1,0,0);
+        glVertex2i(pointsX[i], pointsY[i]);
+        glEnd();
+    }
+
 }
 
 // Função de callback responsável por desenhar os elementos na tela.
@@ -55,7 +60,7 @@ static void display(){
     }
 
     // Se já clicou com o mouse, imprime o ponto também
-    imprimirPonto(x, y);
+    imprimirPonto(pointsX, pointsY);
 
     // Força a execução imediata dos comandos OpenGL
     glFlush();
@@ -98,7 +103,9 @@ static void mouse(int button, int state, int xTela, int yTela){
     std::vector<int>coordenates = calculateCartesianPosition(xTela, yTela);
     x = coordenates[0];
     y = coordenates[1];
-    imprimirPonto(x,y);
+    pointsX.push_back(x);
+    pointsY.push_back(y);
+    imprimirPonto(pointsX,pointsY);
     if ((button == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN)){
             cout << "x_universo: " << coordenates[0] << "\t y_universo: " << coordenates[1] << endl;
     }
