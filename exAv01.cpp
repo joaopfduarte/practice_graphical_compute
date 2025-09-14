@@ -12,6 +12,8 @@
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
+#include <array>
+#include <cmath>
 #endif
 
 #include <iostream>
@@ -22,8 +24,14 @@ using namespace std;
 // Função de callback chamada sempre que a janela é redimensionada.
 int x;
 int y;
-std::vector<int> pointsX;
 std::vector<int> pointsY;
+std::vector<int> pointsX;
+
+std::vector<std::array<int, 2>> pointsInitial;
+std::vector<std::array<int, 2>> pointsFinal;
+
+float distance;
+
 bool coordinateColor = true;
 
 static void resize(int width, int height){
@@ -31,7 +39,7 @@ static void resize(int width, int height){
 }
 
 void desenharEixos(){
-    glColor3f(1, 1, 0);
+    glColor3f(0, 0, 0); // laranja-amarelado
      glBegin(GL_LINES);
        glVertex2i(0, 40); //eixo Y
        glVertex2i(0, -40);
@@ -47,8 +55,20 @@ void imprimirPonto(std::vector<int> pointsX, std::vector<int> pointsY) {
         glVertex2i(pointsX[i], pointsY[i]);
         glEnd();
     }
-
 }
+
+void imprimirLinha() {
+
+    glColor3f(0, 0, 1);
+    glBegin(GL_LINES);
+    for (size_t i = 0; i < pointsInitial.size() && i < pointsFinal.size(); i++) {
+        glVertex2i(pointsInitial[i][0], pointsInitial[i][1]);
+        glVertex2i(pointsFinal[i][0], pointsFinal[i][1]);
+
+    }
+    glEnd();
+}
+
 
 // Função de callback responsável por desenhar os elementos na tela.
 static void display(){
@@ -61,6 +81,8 @@ static void display(){
 
     // Se já clicou com o mouse, imprime o ponto também
     imprimirPonto(pointsX, pointsY);
+    glColor3f(0,1,0);
+    imprimirLinha();
 
     // Força a execução imediata dos comandos OpenGL
     glFlush();
@@ -79,8 +101,8 @@ static void key(unsigned char key, int x, int y){
 }
 static std::vector<int> calculateCartesianPosition(int x, int y) {
     std::vector<int> coordenates;
-    int xCartesian = x/5;
-    int yCartesian = y/5;
+    float xCartesian = x/11.25;
+    float yCartesian = y/11.25;
 
     if (xCartesian < 40) {
         xCartesian = (-1)*(40-xCartesian);
@@ -100,16 +122,42 @@ static std::vector<int> calculateCartesianPosition(int x, int y) {
 
 // Função de callback para tratamento de eventos do mouse.
 static void mouse(int button, int state, int xTela, int yTela){
-    std::vector<int>coordenates = calculateCartesianPosition(xTela, yTela);
-    x = coordenates[0];
-    y = coordenates[1];
-    pointsX.push_back(x);
-    pointsY.push_back(y);
-    imprimirPonto(pointsX,pointsY);
-    if ((button == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN)){
-            cout << "x_universo: " << coordenates[0] << "\t y_universo: " << coordenates[1] << endl;
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+        std::vector<int> coordenates = calculateCartesianPosition(xTela, yTela);
+        x = coordenates[0];
+        y = coordenates[1];
+
+        pointsX.push_back(x);
+        pointsY.push_back(y);
+
+        if (pointsX.size() % 2 == 1) {
+            // Primeiro ponto do par
+            pointsInitial.push_back({x, y});
+        }
+        else {
+            pointsFinal.push_back({x, y});
+
+            int i = pointsFinal.size() - 1;
+            float dist = sqrt(
+                (pointsFinal[i][0] - pointsInitial[i][0]) * (pointsFinal[i][0] - pointsInitial[i][0]) +
+                (pointsFinal[i][1] - pointsInitial[i][1]) * (pointsFinal[i][1] - pointsInitial[i][1])
+            );
+
+            cout << "x: " << coordenates[0] << "\t y: " << coordenates[1] << endl;
+
+            cout << "Distancia entre os pontos (" << pointsInitial[i][0] << "," << pointsInitial[i][1] << ") e ("
+                << pointsFinal[i][0] << "," << pointsFinal[i][1] << "): " << dist << endl;
+
+            return;
+        }
+
+        cout << "x: " << coordenates[0] << "\t y: " << coordenates[1] << endl;
+
+        glutPostRedisplay();
     }
 }
+
+
 
 // Configurações iniciais de visualização (sistema de coordenadas).
 void setup(){
@@ -123,10 +171,10 @@ void setup(){
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Configura a espessura da linha, define a cor amarela e desenha os eixos
-    glLineWidth(2.0f);
-    glViewport(0,0,400,400);
+    glLineWidth(3.0f);
+    glViewport(0,0,900,900);
     desenharEixos();
-    glPointSize(4.0);
+    glPointSize(8.0);
 }
 
 // Programa principal
@@ -138,7 +186,7 @@ int main(int argc, char *argv[]){
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
 
     // Define o tamanho inicial da janela em pixels
-    glutInitWindowSize(400, 400);
+    glutInitWindowSize(900, 900);
 
     // Define a posição inicial da janela na tela
     glutInitWindowPosition(100, 100);
