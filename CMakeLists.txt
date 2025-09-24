@@ -8,9 +8,9 @@ find_package(OpenGL REQUIRED)
 include_directories("C:/msys64/mingw64/include")
 link_directories("C:/msys64/mingw64/lib")
 
-add_executable(graphical_practice exAv01.cpp
-        exAv01.cpp
-        header/exAv01.h)
+add_executable(graphical_practice transformOne.cpp
+        transformOne.cpp
+        header/transformOne.h)
 
 target_link_libraries(graphical_practice PRIVATE
         OpenGL::GL
