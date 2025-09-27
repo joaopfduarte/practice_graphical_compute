@@ -1,0 +1,13 @@
+//
+// Created by joaop on 9/27/2025.
+//
+
+#ifndef GRAPHICAL_PRACTICE_CIRCLECHANGE_H
+#define GRAPHICAL_PRACTICE_CIRCLECHANGE_H
+
+
+class circleChange {
+};
+
+
+#endif //GRAPHICAL_PRACTICE_CIRCLECHANGE_H
