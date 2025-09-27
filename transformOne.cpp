@@ -1,9 +1,3 @@
-//
-// Created by joaop on 9/22/2025.
-//
-
-#include "header/transformOne.h"
-
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
@@ -11,6 +5,46 @@
 #endif
 
 #include <math.h>
+#include <vector>
+
+//Variáveis globais
+std::vector<float> alternaDiaENoite = {0.0f, 0.0f, 0.0f, 1.0f};
+
+int sunPos = 0;
+
+std::vector<float> diaEnoite(unsigned char key) {
+    std::vector diaVet = {1.0f, 1.0f, 1.0f, 1.0f};
+    std::vector noiteVet = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    if (key == 'n') {
+        return alternaDiaENoite = noiteVet;
+    }
+    return alternaDiaENoite = diaVet;
+}
+
+// Fun  o de callback para tratamento de eventos do teclado.
+static void key(unsigned char key, int x, int y){
+    // Encerra o programa quando a tecla ESC (c digo 27)   pressionada.
+    if (key == 27)
+        exit(0);
+
+    if (key == 'n') {
+        diaEnoite('n');
+        glutPostRedisplay();
+    } else if (key == 'd') {
+        diaEnoite('d');
+        glutPostRedisplay();
+    } else if (key == 'e') {
+        sunPos = -20;
+        glutPostRedisplay();
+    } else if (key == 'c') {
+        sunPos = 0;
+        glutPostRedisplay();
+    } else if (key == 'g') {
+        sunPos = 20;
+        glutPostRedisplay();
+    }
+}
 
 void desenharCirculo(GLsizei numeroVertice){
      float angulo, incremento;
@@ -53,23 +87,62 @@ void desenharCasa(){
     glPopMatrix();
 }
 
-
 //matriz de cisalhamento
-GLfloat shearMatrix[16] = {
+GLfloat shearMatrixEsquerda[16] = {
     1.0f, 0.0f, 0.0f, 0.0f,
-   -0.8f, 1.0f, 0.0f, 0.0f,
+    0.8f, 1.0f, 0.0f, 0.0f,
     0.0f, 0.0f, 1.0f, 0.0f,
     0.0f, 0.0f, 0.0f, 1.0f
 };
 
+GLfloat shearMatrixCentro[16] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 1.0f
+};
+
+GLfloat shearMatrixDireita[16] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    -0.8f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 1.0f
+};
 
 // Fun  o de callback chamada sempre que a janela   redimensionada.
 static void resize(int width, int height){
     glViewport(0, 0, width, height);
 }
 
+static void elementsOfDay(bool displayIt) {
+    if (displayIt) {
+        //sombra
+        glPushMatrix();
+        if (sunPos == -20) {
+            glMultMatrixf(shearMatrixDireita);
+        } else if (sunPos == 0) {
+            glMultMatrixf(shearMatrixCentro);
+        } else {
+            glMultMatrixf(shearMatrixEsquerda);
+        }
+        glScalef(1, -1 , 1);
+        glColor3f(0.8f, 0.8f, 0.8f);
+        desenharCasa();
+        glPopMatrix();
+
+        //sol
+        glPushMatrix();
+        glTranslatef(sunPos, 33, 0);
+        glScalef(5, 5 , 1);
+        glColor3f(1.0f, 1.0f, 0.0f);
+        desenharCirculo(30);
+        glPopMatrix();
+    }
+}
+
 // Fun  o de callback respons vel por desenhar os elementos na tela.
 static void display(){
+    glClearColor(alternaDiaENoite[0], alternaDiaENoite[1], alternaDiaENoite[2], alternaDiaENoite[3]);
     glClear(GL_COLOR_BUFFER_BIT);
 
     //gramado
@@ -84,14 +157,6 @@ static void display(){
     glColor3f(0.0f, 0.0f, 1.0f);
     desenharCasa();
 
-    //sombra
-    glPushMatrix();
-        glMultMatrixf(shearMatrix);
-        glScalef(1, -1 , 1);
-        glColor3f(0.8f, 0.8f, 0.8f);
-        desenharCasa();
-    glPopMatrix();
-
     //linha
     glLineWidth(1.5f);
     glColor3f(0.0f, 0.0f, .0f);
@@ -100,24 +165,12 @@ static void display(){
        glVertex2i(40, 0);
     glEnd();
 
-    //sol
-    glPushMatrix();
-        glTranslatef(-20, 33, 0);
-        glScalef(5, 5 , 1);
-        glColor3f(1.0f, 1.0f, 0.0f);
-        desenharCirculo(30);
-    glPopMatrix();
+   if (alternaDiaENoite[0] == 1.0f) {
+       elementsOfDay(true);
+   }
 
 	glFlush();
 }
-
-// Fun  o de callback para tratamento de eventos do teclado.
-static void key(unsigned char key, int x, int y){
-    // Encerra o programa quando a tecla ESC (c digo 27)   pressionada.
-    if (key == 27)
-        exit(0);
-}
-
 
 // Configura  es iniciais de visualiza  o (sistema de coordenadas).
 void setup(void){
@@ -125,10 +178,7 @@ void setup(void){
     glViewport(0, 0, 400, 400);
     gluOrtho2D(-40.0f, 40.0f, -40.0f, 40.0f);
 
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
     glClear(GL_COLOR_BUFFER_BIT);
-
 }
 
 // Programa principal
