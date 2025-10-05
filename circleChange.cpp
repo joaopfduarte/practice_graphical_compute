@@ -131,7 +131,6 @@ void desenhaQuadrado() {
     glEnd();
 }
 
-
 void rotacionaCirculo() {
     // deve aplicar a translação para origem :: rotação :: traslação inversa
     glPushMatrix();
