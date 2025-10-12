@@ -80,36 +80,54 @@ static void resize(int width, int height) {
     atualizaProjecao();
 }
 
+/*
+ * EXP: Função de print fixo das estrelas na tela
+ */
 void desenhaPontosAleatorios() {
-    if (mostradorDeEstrelas) {
-        glPointSize(2.0f);
-        glColor3f(1.0f, 1.0f, 1.0f);
-        glBegin(GL_POINTS);
-        for (int i = 0; i < numEstrelas; i++) {
-            glVertex2f((rand() % 81) - 40, (rand() % 81) - 40);
-        }
-        glEnd();
+    if (!mostradorDeEstrelas) {
+        return;
     }
-}
 
-void desenhaTextoContador(const char *string) {
     glPushMatrix();
-    // Posição no universo onde o texto será colocado
-    glRasterPos2f(-35, -32 - (32 * 0.08));
-    // Exibe caracter a caracter
-    while (*string)
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *string++);
+
+    glScalef(1.0f / zoom, 1.0f / zoom, 1.0f);
+
+    glPointSize(1.5f / zoom);
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    glBegin(GL_POINTS);
+    for (int i = 0; i < numEstrelas; i++) {
+        glVertex2f((rand() % 81) - 40, (rand() % 81) - 40);
+    }
+    glEnd();
+
     glPopMatrix();
 }
 
-void desenhaTextoPause(const char *string) {
+/*
+ * EXP: Função de print fixo dos dados na tela
+ */
+void desenhaTextoTela(float x, float y, const char *string) {
+    // Salva o estado atual
+    glMatrixMode(GL_PROJECTION);
     glPushMatrix();
-    // Posição no universo onde o texto será colocado
-    glRasterPos2f(-5, 36);
-    // Exibe caracter a caracter
+    glLoadIdentity();
+
+    gluOrtho2D(0, 100, 0, 100);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glRasterPos2f(x, y);
     while (*string)
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *string++);
+
+    // Restaura as matrizes
     glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
 }
 
 void desenhaPlanetaAzul() {
@@ -189,15 +207,16 @@ static void display() {
     glClear(GL_COLOR_BUFFER_BIT);
     desenhaPontosAleatorios();
 
-    glColor3f(1.0f, 0.0f, 0.0f);
     std::string mensagemContador = std::format("Translacao orbital: {}", totalDeVoltas);
-    desenhaTextoContador(mensagemContador.c_str());
+    glColor3f(1.0f, 0.0f, 0.0f);
+    desenhaTextoTela(5, 5, mensagemContador.c_str()); // canto inferior esquerdo
 
     if (pause) {
+        std::string mensagemPause = "*** PAUSE ***";
         glColor3f(1.0f, 0.0f, 0.0f);
-        std::string mensagemPause = std::format("*** PAUSE ***");
-        desenhaTextoPause(mensagemPause.c_str());
+        desenhaTextoTela(40, 95, mensagemPause.c_str()); // topo central
     }
+
 
     glColor3f(0.8f, 0.8f, 0.8f);
     desenhaOrbita();
