@@ -8,8 +8,9 @@ find_package(OpenGL REQUIRED)
 include_directories("C:/msys64/mingw64/include")
 link_directories("C:/msys64/mingw64/lib")
 
-add_executable(graphical_practice car.cpp
-        car.cpp)
+add_executable(graphical_practice exAv02.cpp
+        exAv02.cpp
+        header/exAv02.h)
 
 target_link_libraries(graphical_practice PRIVATE
         OpenGL::GL
