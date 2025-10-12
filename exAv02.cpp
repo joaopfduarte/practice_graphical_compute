@@ -27,12 +27,16 @@ bool pause = false;
 
 float xAzul = 0.0f, yAzul = 0.0f, anguloOrbitaPlaneta = PI / 2.0f;;
 
+float zoom = 1.0f;
+const float ZOOM_MIN = 0.3f;
+const float ZOOM_MAX = 400.0f;
+
 static void key(unsigned char key, int x, int y) {
     if (key == 27) {
         exit(0);
     }
 
-    if (key == 'T' || key == 't') {
+    if ((key == 'T' || key == 't') && !pause) {
         orbitaEliptica = !orbitaEliptica;
         glutPostRedisplay();
     }
@@ -47,13 +51,33 @@ static void key(unsigned char key, int x, int y) {
     }
 }
 
-void specialKeys(int key, int x, int y) {
+void atualizaProjecao() {
+    float half = 40.0f / zoom;
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-half, half, -half, half);
+    glMatrixMode(GL_MODELVIEW);
+}
+
+void mouse(int button, int state, int x, int y) {
+    if (state != GLUT_DOWN)
+        return;
+
+    if (button == GLUT_LEFT_BUTTON) {
+        zoom *= 1.1f;
+        if (zoom > ZOOM_MAX)  {zoom = ZOOM_MAX;}
+    } else if (button == GLUT_RIGHT_BUTTON) {
+        zoom /= 1.1f;
+        if (zoom < ZOOM_MIN) {zoom = ZOOM_MIN;}
+    }
+
+    atualizaProjecao();
     glutPostRedisplay();
 }
 
-// Callback chamada sempre que a janela é redimensionada.
 static void resize(int width, int height) {
     glViewport(0, 0, width, height);
+    atualizaProjecao();
 }
 
 void desenhaPontosAleatorios() {
@@ -191,8 +215,6 @@ static void display() {
 }
 
 void setup(void) {
-    gluOrtho2D(-40.0f, 40.0f, -40.0f, 40.0f);
-
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -209,7 +231,7 @@ int main(int argc, char *argv[]) {
 
     glutDisplayFunc(display);
     glutKeyboardFunc(key);
-    glutSpecialFunc(specialKeys);
+    glutMouseFunc(mouse);
     glutReshapeFunc(resize);
 
     setup();
